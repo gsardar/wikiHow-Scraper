@@ -76,13 +76,27 @@ def _read_lines(path):
         return [line.strip() for line in f if line.strip()]
 
 
+from wikihow_scraper.title_utils import clean_title_slug
+
 def add_to_queue(*titles):
-    """Appends one or more article titles to pending.txt. Safe to call while a run
-    is already active - it re-reads the file each cycle."""
+    """Appends one or more article titles to pending.txt, sanitizing and deduplicating
+    against pending, completed, and failed lists."""
     with _state_lock:
-        with open(PENDING_FILE, "a", encoding="utf-8") as f:
-            for t in titles:
-                f.write(t + "\n")
+        pending_set = set(_read_lines(PENDING_FILE))
+        done_set = set(_read_lines(COMPLETED_FILE))
+        failed_set = _get_failed_titles()
+
+        to_add = []
+        for t in titles:
+            clean = clean_title_slug(t)
+            if clean and clean not in pending_set and clean not in done_set and clean not in failed_set:
+                pending_set.add(clean)
+                to_add.append(clean)
+
+        if to_add:
+            with open(PENDING_FILE, "a", encoding="utf-8") as f:
+                for t in to_add:
+                    f.write(t + "\n")
 
 
 def _mark_completed(title):
@@ -133,12 +147,20 @@ def get_queue_status():
 
 
 def _next_batch(candidates, batch_size):
-    """Filters `candidates` down to ones not already completed/failed, capped at
-    batch_size. `candidates` can be pending.txt's contents or an explicit title list."""
+    """Filters `candidates` down to unique titles not already completed/failed,
+    capped at batch_size."""
     done = set(_read_lines(COMPLETED_FILE))
     failed = _get_failed_titles()
-    remaining = [t for t in candidates if t not in done and t not in failed]
-    return remaining[:batch_size]
+    remaining = []
+    seen = set()
+    for raw in candidates:
+        t = clean_title_slug(raw)
+        if t and t not in done and t not in failed and t not in seen:
+            seen.add(t)
+            remaining.append(t)
+        if len(remaining) >= batch_size:
+            break
+    return remaining
 
 
 def _scrape_one(title, port, max_revisions):

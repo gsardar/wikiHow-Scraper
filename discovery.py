@@ -20,6 +20,7 @@ from bs4 import BeautifulSoup
 
 from wikihow_scraper.tabs import claim_new_tab, attach_driver, detach_driver_safely
 from wikihow_scraper.block_detection import check_page_source
+from wikihow_scraper.title_utils import clean_title_slug
 
 
 def _attach_new_tab(port):
@@ -40,7 +41,7 @@ def random_articles(n, port=9099):
             driver.get("https://www.wikihow.com/Special:Randomizer")
             time.sleep(1.5)
             check_page_source(driver.page_source, context="Special:Randomizer")
-            title = driver.current_url.rstrip("/").rsplit("/", 1)[-1]
+            title = clean_title_slug(driver.current_url)
             if title and title not in titles and not title.startswith("Special:"):
                 titles.append(title)
     finally:
@@ -72,8 +73,8 @@ def random_in_category(category, n, port=9099):
             check_page_source(driver.page_source, context=f"Special:RandomInCategory/{category}")
             if "Special:RandomInCategory" in driver.current_url:
                 raise ValueError(f"'{category}' isn't a valid WikiHow category (or has no articles).")
-            title = driver.current_url.rstrip("/").rsplit("/", 1)[-1]
-            if title and title not in titles:
+            title = clean_title_slug(driver.current_url)
+            if title and title not in titles and not title.startswith("Special:"):
                 titles.append(title)
     finally:
         if len(driver.window_handles) > 1:
@@ -103,13 +104,10 @@ def recent_changes(n=30, port=9099):
         seen = set()
         for a in soup.select("a.mw-changeslist-title"):
             href = a.get("href", "")
-            # Some rows' "title" link is actually a diff/user/video link sharing the
-            # same CSS class - only keep clean "/Article-Title" hrefs (no query
-            # string, no namespace prefix like Video:/User:/index.php).
             if not href.startswith("/") or "?" in href:
                 continue
-            title = href.lstrip("/")
-            if ":" in title or not title or title in seen:
+            title = clean_title_slug(href)
+            if not title or title.startswith("Special:") or ":" in title or title in seen:
                 continue
             seen.add(title)
             titles.append(title)
@@ -142,8 +140,8 @@ def _ordered_list_items(driver, url, n, context):
         href = a.get("href", "")
         if "?" in href or ":" in href.lstrip("/"):
             continue
-        title = href.lstrip("/")
-        if title:
+        title = clean_title_slug(href)
+        if title and not title.startswith("Special:") and title not in titles:
             titles.append(title)
         if len(titles) >= n:
             break
@@ -169,11 +167,8 @@ def new_pages(n=20, port=9099):
             a = li.select_one("a[href^='/index.php?title=']")
             if not a:
                 continue
-            match = re.search(r"title=([^&]+)", a.get("href", ""))
-            if not match:
-                continue
-            title = match.group(1)
-            if title not in seen:
+            title = clean_title_slug(a.get("href", ""))
+            if title and not title.startswith("Special:") and title not in seen:
                 seen.add(title)
                 titles.append(title)
             if len(titles) >= n:
