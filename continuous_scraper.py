@@ -201,6 +201,17 @@ def run_continuous(port=9099, max_workers=None, max_revisions=None, poll_interva
             batch = _next_batch(_read_lines(PENDING_FILE), workers)
 
             if not batch:
+                print(f"[continuous] queue empty, auto-discovering new articles...")
+                try:
+                    from wikihow_scraper.discovery import random_articles
+                    new_titles = random_articles(n=20)
+                    if new_titles:
+                        add_to_queue(*new_titles)
+                        batch = _next_batch(_read_lines(PENDING_FILE), workers)
+                except Exception as e:
+                    print(f"[continuous] auto-discovery warning: {e}")
+
+            if not batch:
                 print(f"[continuous] queue empty, sleeping {poll_interval}s...")
                 for _ in range(poll_interval):
                     if _stop_event.is_set():

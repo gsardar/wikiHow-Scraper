@@ -65,10 +65,29 @@ def find_free_port():
         return s.getsockname()[1]
 
 
-# PORTABLE: Path to the seevik Tor executable inside dependencies
-TOR_EXE = os.path.join(PACKAGE_DIR, "dependencies", "tor-ip-changer", "tor", "tor_scraper.exe")
-GEOIP_PATH = os.path.join(PACKAGE_DIR, "dependencies", "tor-ip-changer", "tor", "geoip")
-GEOIP6_PATH = os.path.join(PACKAGE_DIR, "dependencies", "tor-ip-changer", "tor", "geoip6")
+import sys
+import shutil
+
+# Cross-platform Tor executable resolution (Windows & macOS/Linux)
+if sys.platform == "win32":
+    TOR_EXE = os.path.join(PACKAGE_DIR, "dependencies", "tor-ip-changer", "tor", "tor_scraper.exe")
+    GEOIP_PATH = os.path.join(PACKAGE_DIR, "dependencies", "tor-ip-changer", "tor", "geoip")
+    GEOIP6_PATH = os.path.join(PACKAGE_DIR, "dependencies", "tor-ip-changer", "tor", "geoip6")
+else:
+    sys_tor = shutil.which("tor")
+    mac_bundled = os.path.join(PACKAGE_DIR, "dependencies", "tor-mac", "bin", "tor")
+    if os.path.exists(mac_bundled):
+        TOR_EXE = mac_bundled
+        GEOIP_PATH = os.path.join(PACKAGE_DIR, "dependencies", "tor-mac", "share", "geoip")
+        GEOIP6_PATH = os.path.join(PACKAGE_DIR, "dependencies", "tor-mac", "share", "geoip6")
+    elif sys_tor:
+        TOR_EXE = sys_tor
+        GEOIP_PATH = "/opt/homebrew/share/tor/geoip" if os.path.exists("/opt/homebrew/share/tor/geoip") else "/usr/local/share/tor/geoip"
+        GEOIP6_PATH = "/opt/homebrew/share/tor/geoip6" if os.path.exists("/opt/homebrew/share/tor/geoip6") else "/usr/local/share/tor/geoip6"
+    else:
+        TOR_EXE = mac_bundled
+        GEOIP_PATH = os.path.join(PACKAGE_DIR, "dependencies", "tor-mac", "share", "geoip")
+        GEOIP6_PATH = os.path.join(PACKAGE_DIR, "dependencies", "tor-mac", "share", "geoip6")
 
 # PORTABLE: Root data directory - holds browser profiles and the scraped database
 DATA_DIR = os.path.join(PACKAGE_DIR, "data")

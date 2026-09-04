@@ -307,10 +307,10 @@ class WikiHowScraperApp(App):
         strategy = self._selected_strategy
 
         if strategy == "strategy_random":
-            n = int(param) if param.isdigit() else 10
+            n = int(param) if param.isdigit() and int(param) > 0 else 50
             return random_articles(n)
         elif strategy == "strategy_recent":
-            n = int(param) if param.isdigit() else 20
+            n = int(param) if param.isdigit() and int(param) > 0 else 50
             return recent_changes(n)
         elif strategy == "strategy_category":
             if not param:

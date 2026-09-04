@@ -137,11 +137,11 @@ def _resolve_batch_titles(strategy, param, sort_type=None, category=None):
         # MostRevisions, etc.) don't support category scoping. Silently ignored
         # rather than erroring, since the UI already disables the filter dropdown
         # for this strategy - a stale `category` value shouldn't block a run.
-        n = int(param) if str(param).isdigit() else 20
+        n = int(param) if str(param).isdigit() and int(param) > 0 else 50
         func = _SORT_TYPE_FUNCS.get(sort_type, new_pages)
         return func(n)
     elif strategy == "random":
-        n = int(param) if str(param).isdigit() else 10
+        n = int(param) if str(param).isdigit() and int(param) > 0 else 50
         if category:
             return random_in_category(category, n)
         return random_articles(n)
@@ -549,7 +549,7 @@ _INDEX_HTML = """<!doctype html>
       </select>
       <button id="strategy_random">Random articles</button>
       <button id="strategy_manual">Manual list (comma-separated)</button>
-      <input id="param_input" placeholder="Count / titles (comma-separated for Manual)">
+      <input id="param_input" placeholder="Count (blank or 0 = unlimited continuous discovery)">
 
       <h2>Filter</h2>
       <select id="category_filter_select" style="width:100%;box-sizing:border-box;background:#1a1a1a;color:#ddd;

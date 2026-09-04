@@ -87,10 +87,11 @@ class StandaloneTorManager:
         self.proxy_port = p_port
         self.control_port = c_port
 
-        # Clean any stale tor_scraper.exe process
+        # Clean any stale tor process
         for proc in psutil.process_iter(['name']):
             try:
-                if proc.info['name'].lower() == 'tor_scraper.exe':
+                name = (proc.info.get('name') or '').lower()
+                if name in ('tor_scraper.exe', 'tor.exe', 'tor'):
                     proc.kill()
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 pass
@@ -117,14 +118,21 @@ CookieAuthentication 0
         with open(torrc_path, "w") as f:
             f.write(torrc_content.strip())
 
+        import sys
+        from wikihow_scraper import PACKAGE_DIR
+
+        env = os.environ.copy()
+        mac_lib = os.path.join(PACKAGE_DIR, "dependencies", "tor-mac", "lib")
+        if os.path.exists(mac_lib):
+            env["DYLD_LIBRARY_PATH"] = mac_lib + ":" + env.get("DYLD_LIBRARY_PATH", "")
+
+        popen_kwargs = {"stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL, "env": env}
+        if sys.platform == "win32":
+            popen_kwargs["creationflags"] = 0x00000008 | 0x08000000
+
         print(f"[Tor] Launching {TOR_EXE} headless on SOCKS:{p_port} | Control:{c_port}...")
         try:
-            self._process = subprocess.Popen(
-                [TOR_EXE, "-f", torrc_path],
-                creationflags=0x00000008 | 0x08000000,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
-            )
+            self._process = subprocess.Popen([TOR_EXE, "-f", torrc_path], **popen_kwargs)
         except Exception as e:
             print(f"[Tor] Start failed: {e}")
             return False
@@ -185,7 +193,8 @@ CookieAuthentication 0
         else:
             for proc in psutil.process_iter(['name']):
                 try:
-                    if proc.info['name'].lower() == 'tor_scraper.exe':
+                    name = (proc.info.get('name') or '').lower()
+                    if name in ('tor_scraper.exe', 'tor.exe', 'tor'):
                         proc.kill()
                 except (psutil.NoSuchProcess, psutil.AccessDenied):
                     pass
