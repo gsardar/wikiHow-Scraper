@@ -1,0 +1,14 @@
+version: '3.4'
+
+services:
+  tor-ip-changer:
+    container_name: tor-ip-changer
+    image: seevik2580/tor-ip-changer
+    environment:
+      - DISPLAY=${DISPLAY:-:0.0}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    ports:
+      - "9050:9050"
+      # - "14999:14999"         #uncomment if you need api
+    command: "ipchanger"        #change to "ipchanger -p" if you need api

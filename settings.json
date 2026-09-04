@@ -1,0 +1,23 @@
+{
+  "_comment": "All tunable scraper settings live here. __init__.py only computes filesystem paths (which a JSON file can't do - there's no equivalent of Python's __file__) and loads these values. Edit this file, not __init__.py, to change ports or worker sizing.",
+  "proxy": {
+    "default_proxy_port": 9080,
+    "default_control_port": 9081
+  },
+  "workers": {
+    "_comment": "Controls how many concurrent workers (tabs or separate Chrome processes) the scraper auto-selects based on available RAM.",
+    "ram_buffer_mb": 1024,
+    "_ram_buffer_mb_comment": "RAM to always leave free for the OS/other apps, never counted as usable for workers.",
+    "estimated_mb_per_tab_worker": 150,
+    "_estimated_mb_per_tab_worker_comment": "Rough memory footprint of one extra tab in an EXISTING browser instance (lighter - shares one Chrome process).",
+    "estimated_mb_per_process_worker": 350,
+    "_estimated_mb_per_process_worker_comment": "Rough memory footprint of one SEPARATE Chrome process worker (heavier, full browser each).",
+    "min_workers": 1,
+    "max_workers_cap": 8,
+    "_max_workers_cap_comment": "Hard ceiling regardless of RAM - avoid hammering WikiHow or exhausting other resources even on a high-RAM machine."
+  },
+  "memory_slider": {
+    "min_gb": 6.1,
+    "max_gb": 12.4
+  }
+}

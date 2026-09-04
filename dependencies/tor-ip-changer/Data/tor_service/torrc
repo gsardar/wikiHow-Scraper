@@ -1,0 +1,6 @@
+SocksPort 9050
+ControlPort 15000
+DataDirectory C:\Users\Admin\Documents\WikiHow Project\tool\tor-ip-changer\Data\tor_service
+Log notice file C:\Users\Admin\Documents\WikiHow Project\tool\tor-ip-changer\Data\tor_service\tor.log
+GeoIPFile C:\Users\Admin\Documents\WikiHow Project\tool\tor-ip-changer\tor\geoip
+GeoIPv6File C:\Users\Admin\Documents\WikiHow Project\tool\tor-ip-changer\tor\geoip6

@@ -1,0 +1,23 @@
+# Sensitive: plaintext credentials and live login sessions/cookies per profile.
+# Entire profile user data dirs (cookies, local storage, extensions) should not be committed.
+data/profiles/*
+!data/profiles/*/credentials.json
+
+# Transient runtime state - regenerated on demand, not meaningful to share.
+data/tor_runtime/
+data/profiles/active_tor_ports.json
+data/articles/
+data/queue/
+downloaded_files/
+pid_tracker/
+logs/
+*.log
+
+# Python housekeeping.
+__pycache__/
+*.pyc
+
+# Local scratch/test scripts - one-off investigation scripts, not part of the package.
+scratch/
+
+

@@ -1,0 +1,99 @@
+# Tor state file last generated on 2026-04-10 23:42:58 local time
+# Other times below are in UTC
+# You *do not* need to edit this file.
+
+CircuitBuildTimeBin 525 4
+CircuitBuildTimeBin 575 25
+CircuitBuildTimeBin 625 25
+CircuitBuildTimeBin 675 11
+CircuitBuildTimeBin 725 18
+CircuitBuildTimeBin 775 6
+CircuitBuildTimeBin 825 2
+CircuitBuildTimeBin 875 2
+CircuitBuildTimeBin 925 2
+CircuitBuildTimeBin 975 3
+CircuitBuildTimeBin 1025 5
+CircuitBuildTimeBin 1175 1
+CircuitBuildTimeBin 1225 1
+CircuitBuildTimeBin 1275 2
+CircuitBuildTimeBin 1325 4
+CircuitBuildTimeBin 1375 4
+CircuitBuildTimeBin 1425 3
+CircuitBuildTimeBin 1475 1
+CircuitBuildTimeBin 1575 1
+CircuitBuildTimeBin 1675 1
+CircuitBuildTimeBin 1775 1
+CircuitBuildTimeBin 2425 1
+CircuitBuildTimeBin 2525 1
+CircuitBuildTimeBin 3375 1
+CircuitBuildTimeBin 4175 1
+CircuitBuildTimeBin 5875 1
+CircuitBuildTimeBin 6875 1
+CircuitBuildTimeBin 7375 1
+CircuitBuildTimeBin 8075 1
+CircuitBuildTimeBin 13325 1
+CircuitBuildAbandonedCount 3
+Dormant 0
+Guard in=bridges rsa_id=C6F2C5ACF8AD409C6BF624DD6033CD33FEE26BF5 bridge_addr=5.2.73.218:443 sampled_on=2026-03-30T14:19:30 sampled_idx=0 sampled_by=0.4.5.10 unlisted_since=2026-04-08T00:27:47 listed=0
+Guard in=bridges rsa_id=8CC9444B5382F1EE64C2D0C21EB368C8B0506037 bridge_addr=3.121.234.182:9054 sampled_on=2026-03-23T16:22:53 sampled_idx=1 sampled_by=0.4.5.10 unlisted_since=2026-04-10T06:32:52 listed=0
+Guard in=bridges rsa_id=2176725A09182F9FDE5DB7BDB0E42926AA76DD90 bridge_addr=3.115.39.94:12943 sampled_on=2026-03-29T22:31:37 sampled_idx=2 sampled_by=0.4.5.10 unlisted_since=2026-04-10T06:01:49 listed=0
+Guard in=bridges rsa_id=15505A842F8EF22C8195F7566D74D7FFE2800418 bridge_addr=2.229.239.77:58444 sampled_on=2026-03-24T05:08:01 sampled_idx=3 sampled_by=0.4.5.10 unlisted_since=2026-04-09T00:12:22 listed=0
+Guard in=bridges rsa_id=F33AD3B1655C0D1FC13B455FCFC9704384086CE0 bridge_addr=5.9.70.38:9002 sampled_on=2026-03-24T19:26:51 sampled_idx=4 sampled_by=0.4.5.10 unlisted_since=2026-04-08T10:30:01 listed=0 confirmed_on=2026-04-02T02:15:54 confirmed_idx=0 pb_use_attempts=7.000000 pb_use_successes=7.000000 pb_circ_attempts=121.000000 pb_circ_successes=115.000000 pb_successful_circuits_closed=115.000000 pb_timeouts=6.000000
+Guard in=bridges rsa_id=045CA1BFD8096C6DEAB905693889BBD15B4CD301 bridge_addr=3.254.68.107:11650 sampled_on=2026-03-25T16:52:26 sampled_idx=5 sampled_by=0.4.5.10 unlisted_since=2026-04-11T01:07:56 listed=0
+Guard in=bridges rsa_id=051CE60F58D8E07BB88AE74F5E37E2F86C211ED6 bridge_addr=2.205.237.21:35579 sampled_on=2026-03-26T23:22:56 sampled_idx=6 sampled_by=0.4.5.10 unlisted_since=2026-04-10T12:12:10 listed=0
+Guard in=bridges rsa_id=51EE9645042B91F3B5D4E44144A704F3F037557C bridge_addr=3.253.77.53:11650 sampled_on=2026-03-28T17:08:54 sampled_idx=7 sampled_by=0.4.5.10 unlisted_since=2026-04-11T03:35:27 listed=0
+Guard in=bridges rsa_id=9BA4CF70177E315D0F1CBF2DC8DED4FF761A5AB6 bridge_addr=2.202.156.109:41902 sampled_on=2026-04-04T04:37:11 sampled_idx=8 sampled_by=0.4.5.10 unlisted_since=2026-04-10T09:22:06 listed=0
+Guard in=bridges rsa_id=49667732E30609826532300324C885732D008CC4 bridge_addr=3.86.227.10:443 sampled_on=2026-03-26T00:54:03 sampled_idx=9 sampled_by=0.4.5.10 unlisted_since=2026-04-09T08:13:46 listed=0
+Guard in=bridges rsa_id=735476DBE78016DFFC24C5841FC2210CE3FD625C bridge_addr=3.253.104.158:11650 sampled_on=2026-03-27T23:04:13 sampled_idx=10 sampled_by=0.4.5.10 unlisted_since=2026-04-10T02:20:07 listed=0
+Guard in=bridges rsa_id=0346CC8DD92B635B65E46D0917395045DFA47717 bridge_addr=2.102.149.89:5830 sampled_on=2026-03-31T12:35:39 sampled_idx=11 sampled_by=0.4.5.10 unlisted_since=2026-04-10T00:56:37 listed=0
+Guard in=bridges rsa_id=3ACA2FBF2CC6B5EC7F35C05445B3886CBCA14041 bridge_addr=2.230.146.137:9060 sampled_on=2026-03-31T10:13:14 sampled_idx=12 sampled_by=0.4.5.10 unlisted_since=2026-04-07T22:55:06 listed=0
+Guard in=bridges rsa_id=B7E8B832F055435293840D69FE476AA6143C0449 bridge_addr=2.205.244.68:8888 sampled_on=2026-03-28T12:01:47 sampled_idx=13 sampled_by=0.4.5.10 unlisted_since=2026-04-07T07:12:08 listed=0
+Guard in=bridges rsa_id=807C580C24B435E147EEB07B8C962994D19801CD bridge_addr=3.99.46.23:41079 sampled_on=2026-03-26T07:09:01 sampled_idx=14 sampled_by=0.4.5.10 unlisted_since=2026-04-09T07:23:09 listed=0
+Guard in=bridges rsa_id=5A3E33D354B7B7BAE5D3873EF8A68E79B4194A2A bridge_addr=2.35.113.108:9906 sampled_on=2026-03-31T01:36:27 sampled_idx=15 sampled_by=0.4.5.10 unlisted_since=2026-04-08T11:28:16 listed=0
+Guard in=bridges rsa_id=5F5CDBDBC3150D100B0953CCF379B50B38FEB919 bridge_addr=3.149.8.106:8443 sampled_on=2026-03-30T02:01:31 sampled_idx=16 sampled_by=0.4.5.10 unlisted_since=2026-04-10T20:29:19 listed=0
+Guard in=bridges rsa_id=738D7BC3B7CBE8E3A100F4EE55230966A142097D bridge_addr=5.2.73.24:8042 sampled_on=2026-03-30T20:12:56 sampled_idx=17 sampled_by=0.4.5.10 unlisted_since=2026-04-10T12:43:01 listed=0
+Guard in=bridges rsa_id=B7E8B832F055435293840D69FE476AA6143C0449 bridge_addr=2.200.59.69:8888 sampled_on=2026-04-03T04:01:02 sampled_idx=18 sampled_by=0.4.5.10 unlisted_since=2026-04-08T17:29:14 listed=0
+Guard in=bridges rsa_id=721C50D85B13BDC64FBA3CBED008802017485751 bridge_addr=2.203.149.182:9003 sampled_on=2026-03-26T00:03:09 sampled_idx=19 sampled_by=0.4.5.10 unlisted_since=2026-04-08T03:51:24 listed=0
+Guard in=bridges rsa_id=E4823E4E837AA94BC1B7C485555CFFD5F885ABB5 bridge_addr=3.28.186.4:30007 sampled_on=2026-04-02T10:38:45 sampled_idx=20 sampled_by=0.4.5.10 unlisted_since=2026-04-08T09:14:09 listed=0
+Guard in=bridges rsa_id=8203D77BF21351ADDC2DBE86D2515E91A9BFFC20 bridge_addr=2.203.96.252:443 sampled_on=2026-03-30T14:00:17 sampled_idx=21 sampled_by=0.4.5.10 unlisted_since=2026-04-11T03:24:21 listed=0
+Guard in=bridges rsa_id=721C50D85B13BDC64FBA3CBED008802017485751 bridge_addr=2.203.170.175:9003 sampled_on=2026-04-04T08:34:21 sampled_idx=22 sampled_by=0.4.5.10 unlisted_since=2026-04-09T06:35:56 listed=0
+Guard in=bridges rsa_id=3A16586D003E32EE9798055C75D38498863FEC7A bridge_addr=2.37.211.221:9875 sampled_on=2026-04-03T22:07:28 sampled_idx=23 sampled_by=0.4.5.10 unlisted_since=2026-04-09T11:43:46 listed=0
+Guard in=bridges rsa_id=A8B16E53E43CEAA3DD6F452FEA34EE6D8E3C1DA2 bridge_addr=5.2.75.181:9785 sampled_on=2026-03-25T15:28:40 sampled_idx=24 sampled_by=0.4.5.10 unlisted_since=2026-04-09T20:11:10 listed=0
+Guard in=bridges rsa_id=EEE4F5CD47A9DE7172467DD854466A3339771D93 bridge_addr=3.213.234.71:3599 sampled_on=2026-03-25T19:36:18 sampled_idx=25 sampled_by=0.4.5.10 unlisted_since=2026-04-10T01:53:48 listed=0
+Guard in=bridges rsa_id=7D94F9A4C6960F8FE560B904E4FD58672379D27E bridge_addr=2.205.244.205:8444 sampled_on=2026-03-24T20:56:20 sampled_idx=26 sampled_by=0.4.5.10 unlisted_since=2026-04-10T04:59:25 listed=0
+Guard in=bridges rsa_id=DCE57AC308CB82958C56B1B5C9C3D08D225EC942 bridge_addr=1.2.217.144:5987 sampled_on=2026-03-26T22:08:21 sampled_idx=27 sampled_by=0.4.5.10 unlisted_since=2026-04-10T05:51:02 listed=0
+Guard in=bridges rsa_id=71FF3B7AB90C34646CFB80753FD758761D73927A bridge_addr=2.59.183.64:4875 sampled_on=2026-03-26T05:55:34 sampled_idx=28 sampled_by=0.4.5.10 unlisted_since=2026-04-08T20:47:29 listed=0
+Guard in=bridges rsa_id=C055F17058C26BEA71FB7D0859705E9CE48D76DC bridge_addr=2.248.155.143:58592 sampled_on=2026-03-29T02:34:17 sampled_idx=29 sampled_by=0.4.5.10 unlisted_since=2026-04-10T12:19:55 listed=0
+Guard in=bridges rsa_id=02E2C7A64264A5C828673946A73A6659E7EBC120 bridge_addr=5.8.33.144:80 sampled_on=2026-03-24T16:47:28 sampled_idx=30 sampled_by=0.4.5.10 unlisted_since=2026-04-08T12:41:52 listed=0
+Guard in=bridges rsa_id=7D2BCD2EF07FB35EFB6FA8B264863CE696B1A946 bridge_addr=2.202.201.198:9999 sampled_on=2026-03-27T06:11:22 sampled_idx=31 sampled_by=0.4.5.10 unlisted_since=2026-04-07T08:07:04 listed=0
+Guard in=bridges rsa_id=57562FC66F72AC2D20FB5E08C8A8D933292D24FE bridge_addr=2.200.173.227:39107 sampled_on=2026-04-03T19:41:43 sampled_idx=32 sampled_by=0.4.5.10 unlisted_since=2026-04-08T07:36:18 listed=0
+Guard in=bridges rsa_id=51938182014518638DAB18EE2760893757E0F363 bridge_addr=3.39.227.213:29132 sampled_on=2026-04-02T16:30:39 sampled_idx=33 sampled_by=0.4.5.10 unlisted_since=2026-04-08T04:01:06 listed=0
+Guard in=bridges rsa_id=9BA4CF70177E315D0F1CBF2DC8DED4FF761A5AB6 bridge_addr=2.202.119.186:41902 sampled_on=2026-03-23T21:23:36 sampled_idx=34 sampled_by=0.4.5.10 unlisted_since=2026-04-09T01:05:35 listed=0
+Guard in=bridges rsa_id=A8B16E53E43CEAA3DD6F452FEA34EE6D8E3C1DA2 bridge_addr=5.2.75.181:9418 sampled_on=2026-03-25T17:44:31 sampled_idx=35 sampled_by=0.4.5.10 unlisted_since=2026-04-07T14:45:16 listed=0
+Guard in=bridges rsa_id=363DCFB52ED15579C968C339959751125CFE9E65 bridge_addr=2.229.145.26:9001 sampled_on=2026-03-31T18:38:24 sampled_idx=36 sampled_by=0.4.5.10 unlisted_since=2026-04-10T18:10:36 listed=0
+Guard in=bridges rsa_id=64DF5E59804B058E64BF19B6992F1330C73B2CF4 bridge_addr=2.235.200.161:32365 sampled_on=2026-03-30T20:37:33 sampled_idx=37 sampled_by=0.4.5.10 unlisted_since=2026-04-09T23:49:29 listed=0
+Guard in=default rsa_id=8929AF5554BE622DE3FE34812C03D65FE7D5D0F1 nickname=NTH47R1 sampled_on=2026-04-07T15:28:54 sampled_idx=0 sampled_by=0.4.5.10 listed=1 confirmed_on=2026-04-07T22:17:55 confirmed_idx=0 pb_use_attempts=2.000000 pb_use_successes=2.000000 pb_circ_attempts=10.000000 pb_circ_successes=9.000000 pb_successful_circuits_closed=9.000000 pb_timeouts=1.000000
+Guard in=default rsa_id=3AA0AB29C1E286C4BEE721FDA3413C058F9F43FD nickname=1980 sampled_on=2026-04-09T18:26:13 sampled_idx=1 sampled_by=0.4.5.10 listed=1
+Guard in=default rsa_id=2A82DFF7BEB7B4269D4D6EAE39DEC36F98214268 nickname=tesseract02 sampled_on=2026-04-04T16:45:05 sampled_idx=2 sampled_by=0.4.5.10 listed=1
+Guard in=default rsa_id=8E3700E561E8E080564648601093AC9570080D8D nickname=gibson44 sampled_on=2026-04-01T11:55:45 sampled_idx=3 sampled_by=0.4.5.10 listed=1
+Guard in=default rsa_id=D8EA105E79803FB0040A8C2A676D93DAEA2CFFF0 nickname=tryler sampled_on=2026-04-03T10:38:17 sampled_idx=4 sampled_by=0.4.5.10 listed=1
+Guard in=default rsa_id=8DB78E2DF4DF4B8D1EB30478C608513830E9E7F1 nickname=chance sampled_on=2026-04-08T16:13:16 sampled_idx=5 sampled_by=0.4.5.10 listed=1
+Guard in=default rsa_id=9FE14A0E533815C040A380388640F7C0936C85CE nickname=Collateral sampled_on=2026-04-05T17:38:37 sampled_idx=6 sampled_by=0.4.5.10 listed=1 confirmed_on=2026-03-31T17:11:57 confirmed_idx=1 pb_use_attempts=3.000000 pb_use_successes=3.000000 pb_circ_attempts=7.000000 pb_circ_successes=7.000000 pb_successful_circuits_closed=7.000000
+Guard in=default rsa_id=F2515315FE0DB7456194CABC503B526B49951415 nickname=hellomyduckSpring sampled_on=2026-04-02T19:53:02 sampled_idx=7 sampled_by=0.4.5.10 listed=1
+Guard in=default rsa_id=B88B6131C86EB2EAF3D604397E148F9F619A0815 nickname=NTH84R1 sampled_on=2026-04-01T18:22:57 sampled_idx=8 sampled_by=0.4.5.10 listed=1
+Guard in=default rsa_id=593A4431DA2E315883406AECE1D1188E02F23D8F nickname=klarheit sampled_on=2026-04-08T04:31:06 sampled_idx=9 sampled_by=0.4.5.10 listed=1
+Guard in=default rsa_id=6F3C20EA9DA9693A47DC857022A61CB388B4D31F nickname=Baobab sampled_on=2026-04-07T06:29:38 sampled_idx=10 sampled_by=0.4.5.10 listed=1
+Guard in=default rsa_id=9289033F9CC6667E4A8B457C462E754F01C044F0 nickname=Kamacuras sampled_on=2026-04-09T02:35:43 sampled_idx=11 sampled_by=0.4.5.10 listed=1
+Guard in=default rsa_id=EB9DD80E64DD829A5F7C7ACA5D5FEADFEBFDD847 nickname=ForPrivacyNET sampled_on=2026-04-06T18:55:15 sampled_idx=12 sampled_by=0.4.5.10 listed=1
+Guard in=default rsa_id=11AA8059BB9A0EC58412E91723F81FFD49C60E7E nickname=BSDrelay09 sampled_on=2026-04-09T11:36:22 sampled_idx=13 sampled_by=0.4.5.10 listed=1
+Guard in=default rsa_id=5C426791CB47BDDDD97A71EB2EFC4CCC84DEB299 nickname=ReacTOR sampled_on=2026-04-02T13:48:42 sampled_idx=14 sampled_by=0.4.5.10 listed=1
+Guard in=default rsa_id=CACFAB9C55B22881BDC0929E522C3A262A74E81B nickname=prsv sampled_on=2026-04-03T02:53:46 sampled_idx=15 sampled_by=0.4.5.10 listed=1
+Guard in=default rsa_id=7C781344302E21A6A954D7D794255CFD294D50EE nickname=666Sirocco sampled_on=2026-04-04T21:18:53 sampled_idx=16 sampled_by=0.4.5.10 listed=1
+Guard in=default rsa_id=133494472D69F454C948F76F5C5B25E4601D3B3F nickname=DontTreadOnMe2 sampled_on=2026-04-02T21:24:18 sampled_idx=17 sampled_by=0.4.5.10 listed=1
+Guard in=default rsa_id=3BA2A8C1BE4FD6CCEBBCE4689B66372A0519E0C8 nickname=noxdafox sampled_on=2026-04-02T19:18:18 sampled_idx=18 sampled_by=0.4.5.10 listed=1
+Guard in=default rsa_id=24167CC4D183585A6AA4192B770F611F9D69C043 nickname=famousdex sampled_on=2026-04-04T16:11:37 sampled_idx=19 sampled_by=0.4.5.10 listed=1
+Guard in=default rsa_id=1C1821CFF1B34BF006CC4DF8957AA15789F8D01F nickname=HelloWorld sampled_on=2026-04-06T20:36:41 sampled_idx=20 sampled_by=0.4.5.10 listed=1
+Guard in=default rsa_id=BF8CF01E00DD4FC3F0E539567B0F4C99B17ECFE4 nickname=shyne sampled_on=2026-03-30T10:13:01 sampled_idx=21 sampled_by=0.4.5.10 listed=1
+LastWritten 2026-04-11 06:42:58
+TorVersion Tor 0.4.5.10 (git-fd74f7628eba2525)
+TotalBuildTimes 134
