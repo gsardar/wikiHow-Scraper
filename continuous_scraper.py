@@ -92,17 +92,42 @@ def _mark_completed(title):
 
 
 def _mark_failed(title, error):
+    err_single = str(error).replace("\r", " ").replace("\n", " ").strip()
     with _state_lock:
         with open(FAILED_FILE, "a", encoding="utf-8") as f:
-            f.write(f"{title}\t{error}\n")
+            f.write(f"{title}\t{err_single}\n")
+
+
+def _get_failed_titles():
+    lines = _read_lines(FAILED_FILE)
+    failed = set()
+    for l in lines:
+        if "\t" in l:
+            t = l.split("\t")[0].strip()
+            if t:
+                failed.add(t)
+    return failed
+
+
+def retry_failed():
+    """Moves all failed titles back into pending.txt and clears failed.txt."""
+    with _state_lock:
+        failed_lines = _read_lines(FAILED_FILE)
+        failed_titles = [l.split("\t")[0].strip() for l in failed_lines if "\t" in l and l.split("\t")[0].strip()]
+        if failed_titles:
+            with open(PENDING_FILE, "a", encoding="utf-8") as f:
+                for t in failed_titles:
+                    f.write(t + "\n")
+        with open(FAILED_FILE, "w", encoding="utf-8") as f:
+            f.write("")
+    return len(failed_titles)
 
 
 def get_queue_status():
     """Counts for a dashboard: pending (not yet done/failed), completed, failed."""
     pending = _read_lines(PENDING_FILE)
     done = set(_read_lines(COMPLETED_FILE))
-    failed_lines = _read_lines(FAILED_FILE)
-    failed = set(line.split("\t")[0] for line in failed_lines)
+    failed = _get_failed_titles()
     remaining = [t for t in pending if t not in done and t not in failed]
     return {"pending": len(remaining), "completed": len(done), "failed": len(failed)}
 
@@ -111,7 +136,7 @@ def _next_batch(candidates, batch_size):
     """Filters `candidates` down to ones not already completed/failed, capped at
     batch_size. `candidates` can be pending.txt's contents or an explicit title list."""
     done = set(_read_lines(COMPLETED_FILE))
-    failed = set(line.split("\t")[0] for line in _read_lines(FAILED_FILE))
+    failed = _get_failed_titles()
     remaining = [t for t in candidates if t not in done and t not in failed]
     return remaining[:batch_size]
 
@@ -127,8 +152,15 @@ def _scrape_one(title, port, max_revisions):
         _progress[title] = {"current": 0, "total": max_revisions or 0, "start_time": time.time()}
 
     try:
-        scrape_article_to_json(title, port=port, max_revisions=max_revisions, progress_callback=on_progress,
-                                should_stop=_stop_event.is_set)
+        from wikihow_scraper.article_pipeline import _find_existing_json, update_article_json
+        existing_path = _find_existing_json(title)
+        if existing_path:
+            print(f"[*] Resuming partial progress for '{title}'...")
+            update_article_json(title, port=port, fetch_missing_snapshots=True, max_new_snapshots=max_revisions,
+                                progress_callback=on_progress, should_stop=_stop_event.is_set)
+        else:
+            scrape_article_to_json(title, port=port, max_revisions=max_revisions, progress_callback=on_progress,
+                                    should_stop=_stop_event.is_set)
         if _stop_event.is_set():
             _mark_failed(title, "stopped by user (partial progress saved)")
         else:
@@ -173,6 +205,27 @@ def run_once(titles, port=9099, max_workers=None, max_revisions=None):
             _is_running = False
 
 
+def _background_replenish_loop(port, min_threshold=15):
+    """Background thread that keeps pending.txt populated in advance so workers never stall."""
+    print("[replenisher] background queue replenisher thread started.")
+    while not _stop_event.is_set():
+        try:
+            status = get_queue_status()
+            if status["pending"] < min_threshold:
+                print(f"[replenisher] pending count low ({status['pending']} < {min_threshold}), pre-fetching new titles in background tab...")
+                from wikihow_scraper.discovery import random_articles
+                new_titles = random_articles(n=25, port=port)
+                if new_titles:
+                    add_to_queue(*new_titles)
+                    print(f"[replenisher] pre-fetched and added {len(new_titles)} new articles.")
+        except Exception as e:
+            print(f"[replenisher] warning: {e}")
+        for _ in range(5):
+            if _stop_event.is_set():
+                break
+            time.sleep(1)
+
+
 def run_continuous(port=9099, max_workers=None, max_revisions=None, poll_interval=15, run_seconds=None):
     """
     "Continuous" mode: repeatedly pulls a batch of not-yet-processed titles from
@@ -188,6 +241,10 @@ def run_continuous(port=9099, max_workers=None, max_revisions=None, poll_interva
     start = time.time()
     print(f"[continuous] watching {PENDING_FILE} - add titles there any time.")
 
+    # Launch background replenisher thread so queue never runs out
+    replenish_thread = threading.Thread(target=_background_replenish_loop, args=(port,), daemon=True)
+    replenish_thread.start()
+
     try:
         while True:
             if _stop_event.is_set():
@@ -199,17 +256,6 @@ def run_continuous(port=9099, max_workers=None, max_revisions=None, poll_interva
 
             workers = max_workers if max_workers is not None else get_adaptive_worker_count(mode="tab")
             batch = _next_batch(_read_lines(PENDING_FILE), workers)
-
-            if not batch:
-                print(f"[continuous] queue empty, auto-discovering new articles...")
-                try:
-                    from wikihow_scraper.discovery import random_articles
-                    new_titles = random_articles(n=20)
-                    if new_titles:
-                        add_to_queue(*new_titles)
-                        batch = _next_batch(_read_lines(PENDING_FILE), workers)
-                except Exception as e:
-                    print(f"[continuous] auto-discovery warning: {e}")
 
             if not batch:
                 print(f"[continuous] queue empty, sleeping {poll_interval}s...")

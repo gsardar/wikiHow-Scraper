@@ -487,6 +487,13 @@ def api_stop():
     return jsonify({"ok": True})
 
 
+@app.route("/api/queue/retry_failed", methods=["POST"])
+def api_queue_retry_failed():
+    count = cs.retry_failed()
+    activity_log.log(f"[queue] retried {count} failed article(s)")
+    return jsonify({"ok": True, "retried": count})
+
+
 @app.route("/api/proxy/<action>", methods=["POST"])
 def api_proxy(action):
     def worker():

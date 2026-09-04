@@ -222,7 +222,7 @@ def _find_existing_json(article_title):
 
 
 def update_article_json(article_title, port=9099, fetch_missing_snapshots=True, max_new_snapshots=None,
-                         should_stop=None):
+                         should_stop=None, progress_callback=None):
     """
     Incrementally updates an already-scraped article instead of re-scraping
     everything from zero:
@@ -247,7 +247,8 @@ def update_article_json(article_title, port=9099, fetch_missing_snapshots=True, 
     existing_path = _find_existing_json(article_title)
     if not existing_path:
         print(f"[*] No existing data for '{article_title}' - doing a full scrape instead.")
-        return scrape_article_to_json(article_title, port=port, max_revisions=max_new_snapshots)
+        return scrape_article_to_json(article_title, port=port, max_revisions=max_new_snapshots,
+                                     progress_callback=progress_callback, should_stop=should_stop)
 
     with open(existing_path, "r", encoding="utf-8") as f:
         payload = json.load(f)
@@ -263,10 +264,10 @@ def update_article_json(article_title, port=9099, fetch_missing_snapshots=True, 
     new_history_entries = [r for r in history if r.get("revid", 0) > highest_known_id]
     print(f"[*] {len(new_history_entries)} new revision(s) found since last scrape.")
 
-    missing_snapshot_ids = {
+    missing_snapshot_ids = [
         r["revision_id"] for r in existing_revisions
         if fetch_missing_snapshots and not r.get("snapshot_wikitext")
-    }
+    ]
     print(f"[*] {len(missing_snapshot_ids)} existing revision(s) missing a snapshot to backfill.")
 
     if not new_history_entries and not missing_snapshot_ids:
@@ -280,15 +281,12 @@ def update_article_json(article_title, port=9099, fetch_missing_snapshots=True, 
         driver.switch_to.window(my_tab)
 
     new_records = []
+    total_to_fetch = len(new_history_entries) + len(missing_snapshot_ids)
+    fetched_count = 0
+
     try:
         snapshot_cap = max_new_snapshots if max_new_snapshots is not None else len(new_history_entries)
         for idx, rev in enumerate(new_history_entries):
-            # A new entry's parent is either the next new entry (raw history.py schema:
-            # revid/user/user_profile_url), or - for the oldest new entry - the newest
-            # of the already-known revisions (OUR schema: revision_id/author{name,
-            # user_page}). Normalize both shapes to the same (id, name, page) tuple so
-            # parent_id/parent_author are correct either way, instead of silently
-            # reading the wrong keys off whichever shape happened to be there.
             if idx + 1 < len(new_history_entries):
                 p = new_history_entries[idx + 1]
                 parent_id, parent_name, parent_page = p.get("revid"), p.get("user"), p.get("user_profile_url")
@@ -324,6 +322,9 @@ def update_article_json(article_title, port=9099, fetch_missing_snapshots=True, 
 
             if idx < snapshot_cap and not (should_stop and should_stop()):
                 record["snapshot_wikitext"] = fetch_wikitext(article_title, rev.get("revid"), driver=driver)
+                fetched_count += 1
+                if progress_callback:
+                    progress_callback(fetched_count, total_to_fetch)
 
             new_records.append(record)
 
@@ -333,6 +334,9 @@ def update_article_json(article_title, port=9099, fetch_missing_snapshots=True, 
                       f"for next time (nothing lost, nothing re-fetched unnecessarily).")
                 break
             existing_by_id[revid]["snapshot_wikitext"] = fetch_wikitext(article_title, revid, driver=driver)
+            fetched_count += 1
+            if progress_callback:
+                progress_callback(fetched_count, total_to_fetch)
     finally:
         if driver:
             if len(driver.window_handles) > 1:

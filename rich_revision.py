@@ -30,6 +30,20 @@ def _attach_new_tab(port):
     return driver
 
 
+def _get_body_text(driver, retries=3, delay=0.5):
+    """Safely fetches body element text with retries to handle StaleElementReferenceException
+    or dynamic DOM re-renders during navigation."""
+    last_err = None
+    for attempt in range(retries):
+        try:
+            return driver.find_element("tag name", "body").text
+        except Exception as e:
+            last_err = e
+            time.sleep(delay)
+    # Final fallback attempt
+    return driver.find_element("tag name", "body").text
+
+
 def fetch_wikitext(article_title, revid, port=9099, driver=None):
     """Fetches the full wikitext of one specific revision via action=raw."""
     own_driver = driver is None
@@ -39,7 +53,7 @@ def fetch_wikitext(article_title, revid, port=9099, driver=None):
         url = f"https://www.wikihow.com/index.php?title={article_title}&oldid={revid}&action=raw"
         driver.get(url)
         time.sleep(1.5)
-        body_text = driver.find_element("tag name", "body").text
+        body_text = _get_body_text(driver)
         check_page_source(body_text, context=url)
         return body_text
     finally:
@@ -62,7 +76,7 @@ def fetch_diff_html(from_revid, to_revid, port=9099, driver=None):
         driver.get(url)
         time.sleep(1.5)
         import json
-        body = driver.find_element("tag name", "body").text
+        body = _get_body_text(driver)
         check_page_source(body, context=url)
         data = json.loads(body)
         return data.get("compare", {}).get("*", "")
