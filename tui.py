@@ -356,6 +356,8 @@ class WikiHowScraperApp(App):
 
         def worker():
             try:
+                profile = ProfileManager.get_active_profile()
+                BrowserWatchdog(profile, port=9099).start_watchdog()
                 titles = self._resolve_batch_titles()
                 self.call_from_thread(status.update, f"Starting on {len(titles)} article(s)...")
                 log_activity(f"[run] starting {mode} on {len(titles)} article(s)")

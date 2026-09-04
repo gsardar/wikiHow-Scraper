@@ -212,6 +212,7 @@ def api_status():
 
     return jsonify({
         "running": cs.is_running(),
+        "stopping": cs._stop_event.is_set(),
         "queue": cs.get_queue_status(),
         "overall_rate": round(cs.get_overall_rate(), 3),
         "articles": articles,
@@ -401,9 +402,9 @@ def api_start_batch():
 
     def worker():
         try:
+            _ensure_watchdog_running(port=9099)
             titles = _resolve_batch_titles(strategy, param, sort_type, category)
             activity_log.log(f"[run] starting {mode} on {len(titles)} article(s)")
-            _ensure_watchdog_running(port=9099)
             if mode == "list":
                 cs.run_once(titles)
             else:
@@ -485,6 +486,7 @@ _INDEX_HTML = """<!doctype html>
   .log { font-family: Consolas, monospace; font-size:12px; white-space:pre-wrap; max-height:300px; overflow-y:auto; }
   .status-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; }
   .status-dot.ok { background:#22c55e; }
+  .status-dot.warn { background:#f59e0b; }
   .status-dot.bad { background:#ef4444; }
   .stat-line { font-size:13px; margin:4px 0; }
 
@@ -931,12 +933,14 @@ document.getElementById("start_btn").onclick = async () => {
       }),
     });
   }
-  statusEl.textContent = "Running.";
+  statusEl.innerHTML = '<span class="status-dot ok"></span>Starting...';
 };
 
 document.getElementById("stop_btn").onclick = async () => {
+  document.getElementById("start_btn").disabled = true;
+  document.getElementById("stop_btn").disabled = true;
+  document.getElementById("run_status").innerHTML = '<span class="status-dot warn"></span>Stopping...';
   await fetch("/api/stop", {method: "POST"});
-  document.getElementById("run_status").textContent = "Stop requested...";
 };
 
 document.getElementById("refresh_accounts_btn").onclick = () => fetch("/api/accounts/refresh", {method: "POST"});
@@ -949,8 +953,31 @@ async function poll() {
     const r = await fetch("/api/status");
     const data = await r.json();
 
+    let stateLabel = "STOPPED";
+    let stateDot = "bad";
+    let isStartDisabled = false;
+    let isStopDisabled = true;
+
+    if (data.running) {
+      if (data.stopping) {
+        stateLabel = "STOPPING... (finishing active batch)";
+        stateDot = "warn";
+        isStartDisabled = true;
+        isStopDisabled = true;
+      } else {
+        stateLabel = "RUNNING";
+        stateDot = "ok";
+        isStartDisabled = true;
+        isStopDisabled = false;
+      }
+    }
+
+    document.getElementById("start_btn").disabled = isStartDisabled;
+    document.getElementById("stop_btn").disabled = isStopDisabled;
+    document.getElementById("run_status").innerHTML = `<span class="status-dot ${stateDot}"></span>${stateLabel}`;
+
     document.getElementById("queue_stats").innerHTML = `
-      <div class="stat-line"><span class="status-dot ${data.running ? 'ok' : 'bad'}"></span>Run state: ${data.running ? 'RUNNING' : 'stopped'}</div>
+      <div class="stat-line"><span class="status-dot ${stateDot}"></span>Run state: <b>${stateLabel}</b></div>
       <div class="stat-line">Queue: pending=${data.queue.pending} completed=${data.queue.completed} failed=${data.queue.failed}</div>
       <div class="stat-line"><span class="status-dot ${data.tor.status === 'ONLINE' ? 'ok' : 'bad'}"></span>Tor: ${data.tor.status} | IP: ${data.tor.current_ip || '-'}</div>
     `;
