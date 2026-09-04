@@ -159,5 +159,8 @@ def get_adaptive_worker_count(mode="tab"):
         per_worker = 1
 
     workers = int(usable_mb // per_worker)
-    workers = max(cfg["min_workers"], min(workers, cfg["max_workers_cap"]))
+    min_tabs = cfg.get("min_workers", 1)
+    tab_limit = cfg.get("total_worker_tabs", cfg.get("max_workers_cap", 8))
+
+    workers = max(min_tabs, min(workers, tab_limit))
     return workers

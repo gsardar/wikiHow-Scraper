@@ -16,6 +16,7 @@
     "_estimated_mb_per_process_worker_comment": "Rough memory footprint of one SEPARATE Chrome process worker (heavier, full browser each).",
     "min_workers": 1,
     "max_workers_cap": 8,
+    "total_worker_tabs": 5,
     "_max_workers_cap_comment": "Hard ceiling regardless of RAM - avoid hammering WikiHow or exhausting other resources even on a high-RAM machine."
   },
   "memory_slider": {

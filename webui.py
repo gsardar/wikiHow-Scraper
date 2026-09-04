@@ -184,6 +184,51 @@ def api_set_memory_range():
     return jsonify({"ok": True})
 
 
+@app.route("/api/settings/workers", methods=["GET"])
+def api_get_workers_settings():
+    try:
+        with open(SETTINGS_PATH, "r") as f:
+            data = _json.load(f)
+        w_cfg = data.get("workers", {})
+        return jsonify({"total_worker_tabs": w_cfg.get("total_worker_tabs", 5), "min_workers": w_cfg.get("min_workers", 1)})
+    except Exception:
+        return jsonify({"total_worker_tabs": 5, "min_workers": 1})
+
+
+@app.route("/api/settings/workers", methods=["POST"])
+def api_set_workers_settings():
+    data = request.get_json(silent=True) or request.get_json(force=True, silent=True) or {}
+    total_tabs = data.get("total_worker_tabs")
+    min_tabs = data.get("min_workers")
+    try:
+        with open(SETTINGS_PATH, "r") as f:
+            settings_data = _json.load(f)
+    except Exception:
+        settings_data = {}
+
+    if "workers" not in settings_data:
+        settings_data["workers"] = {}
+
+    if total_tabs is not None:
+        try:
+            settings_data["workers"]["total_worker_tabs"] = max(1, int(total_tabs))
+        except (ValueError, TypeError):
+            pass
+    if min_tabs is not None:
+        try:
+            settings_data["workers"]["min_workers"] = max(1, int(min_tabs))
+        except (ValueError, TypeError):
+            pass
+
+    try:
+        with open(SETTINGS_PATH, "w") as f:
+            _json.dump(settings_data, f, indent=2)
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+    return jsonify({"ok": True})
+
+
 @app.route("/api/settings/proxy", methods=["GET"])
 def api_get_proxy_settings():
     try:
@@ -589,6 +634,17 @@ _INDEX_HTML = """<!doctype html>
   .mem-handle:hover::before, .mem-handle.dragging::before { border-top-color:#60a5fa; }
   .mem-handle-label { position:absolute; top:40px; font-size:10px; color:#93c5fd; white-space:nowrap;
                        left:50%; transform:translateX(-50%); }
+  button:disabled { opacity: 0.45 !important; cursor: not-allowed !important; pointer-events: none !important; }
+  .btn-start { background:#166534; border-color:#166534; color:#fff; display:flex; align-items:center; justify-content:center; gap:6px; }
+  .btn-start:hover { background:#15803d; }
+  .btn-stop { background:#7f1d1d; border-color:#991b1b; color:#fff; display:flex; align-items:center; justify-content:center; gap:6px; }
+  .btn-stop:hover { background:#991b1b; }
+  .spinner-inline {
+    display: inline-block; width: 12px; height: 12px;
+    border: 2px solid rgba(255,255,255,0.3); border-radius: 50%;
+    border-top-color: #ffffff; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -631,13 +687,6 @@ _INDEX_HTML = """<!doctype html>
       <div class="muted" id="filter_hint" style="margin-bottom:8px;"></div>
     </div>
 
-    <h2>Run</h2>
-    <div class="row">
-      <button id="start_btn" style="background:#166534;border-color:#166534;">Start</button>
-      <button id="stop_btn" class="danger">Stop</button>
-    </div>
-    <div id="run_status" class="muted"></div>
-
     <h2>Tor Proxy &amp; Privacy</h2>
     <div class="panel" style="margin-bottom:12px;padding:10px;">
       <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-bottom:6px;">
@@ -665,7 +714,19 @@ _INDEX_HTML = """<!doctype html>
         <div class="mem-handle" id="mem_handle_max"><div class="mem-handle-label" id="mem_max_label">max</div></div>
       </div>
       <div class="muted" id="mem_status_line">Used: -- GB / -- GB</div>
+
+      <div style="margin-top:14px;border-top:1px solid #2a2a2a;padding-top:10px;">
+        <label style="font-size:12px;color:#aaa;display:block;margin-bottom:4px;"><b>Total Worker Tabs (Tab Limit):</b></label>
+        <input type="number" id="worker_tab_limit_input" min="1" max="50" style="width:100%;margin-bottom:0;" placeholder="Default: 5">
+      </div>
     </div>
+
+    <h2>Run Scraper</h2>
+    <div class="row">
+      <button id="start_btn" class="btn-start">Start</button>
+      <button id="stop_btn" class="btn-stop danger">Stop</button>
+    </div>
+    <div id="run_status" class="muted" style="margin-top:6px;"></div>
   </div>
 
   <div class="main">
@@ -989,38 +1050,75 @@ function setupMemoryHandleDrag(handleId, isMin) {
 setupMemoryHandleDrag("mem_handle_min", true);
 setupMemoryHandleDrag("mem_handle_max", false);
 
+let workerSettingsLoaded = false;
+async function loadWorkerSettings() {
+  try {
+    const r = await fetch("/api/settings/workers");
+    const data = await r.json();
+    document.getElementById("worker_tab_limit_input").value = data.total_worker_tabs || 5;
+    workerSettingsLoaded = true;
+  } catch(e) {}
+}
+
+document.getElementById("worker_tab_limit_input").onchange = async (e) => {
+  const val = parseInt(e.target.value) || 5;
+  await fetch("/api/settings/workers", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({total_worker_tabs: val})
+  });
+};
+
+let isStarting = false;
+let isStopping = false;
+
 document.getElementById("start_btn").onclick = async () => {
   const statusEl = document.getElementById("run_status");
-  if (selectedMode === "single") {
-    const title = document.getElementById("single_title").value.trim();
-    if (!title) { statusEl.textContent = "Enter an article title."; return; }
-    statusEl.textContent = "Starting...";
-    await fetch("/api/start/single", {
-      method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        title, max_revisions: document.getElementById("single_max_rev").value.trim(),
-        update: updateToggle,
-      }),
-    });
-  } else {
-    statusEl.textContent = "Starting...";
-    await fetch("/api/start/batch", {
-      method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        mode: selectedMode, strategy: selectedStrategy,
-        param: document.getElementById("param_input").value.trim(),
-        sort_type: document.getElementById("sort_type_select").value,
-        category: selectedCategory,
-      }),
-    });
+  isStarting = true;
+  isStopping = false;
+  document.getElementById("start_btn").disabled = true;
+  document.getElementById("start_btn").innerHTML = '<span class="spinner-inline"></span> Starting...';
+  document.getElementById("stop_btn").disabled = true;
+  document.getElementById("run_status").innerHTML = '<span class="status-dot warn"></span>Starting... please wait';
+
+  try {
+    if (selectedMode === "single") {
+      const title = document.getElementById("single_title").value.trim();
+      if (!title) {
+        statusEl.textContent = "Enter an article title.";
+        isStarting = false;
+        return;
+      }
+      await fetch("/api/start/single", {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          title, max_revisions: document.getElementById("single_max_rev").value.trim(),
+          update: updateToggle,
+        }),
+      });
+    } else {
+      await fetch("/api/start/batch", {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          mode: selectedMode, strategy: selectedStrategy,
+          param: document.getElementById("param_input").value.trim(),
+          sort_type: document.getElementById("sort_type_select").value,
+          category: selectedCategory,
+        }),
+      });
+    }
+  } catch (e) {
+    isStarting = false;
+    statusEl.textContent = "Start failed: " + e;
   }
-  statusEl.innerHTML = '<span class="status-dot ok"></span>Starting...';
 };
 
 document.getElementById("stop_btn").onclick = async () => {
+  isStopping = true;
+  isStarting = false;
   document.getElementById("start_btn").disabled = true;
   document.getElementById("stop_btn").disabled = true;
-  document.getElementById("run_status").innerHTML = '<span class="status-dot warn"></span>Stopping...';
+  document.getElementById("stop_btn").innerHTML = '<span class="spinner-inline"></span> Stopping...';
+  document.getElementById("run_status").innerHTML = '<span class="status-dot warn"></span>Stoppage in progress... please wait';
   await fetch("/api/stop", {method: "POST"});
 };
 
@@ -1053,31 +1151,58 @@ async function poll() {
     if (!proxySettingsLoaded) {
       loadProxySettings();
     }
+    if (!workerSettingsLoaded) {
+      loadWorkerSettings();
+    }
 
     const r = await fetch("/api/status");
     const data = await r.json();
 
+    if (data.running) {
+      isStarting = false;
+    }
+    if (!data.running && !data.stopping) {
+      isStopping = false;
+    }
+
     let stateLabel = "STOPPED";
     let stateDot = "bad";
-    let isStartDisabled = false;
-    let isStopDisabled = true;
 
     if (data.running) {
       if (data.stopping) {
         stateLabel = "STOPPING... (finishing active batch)";
         stateDot = "warn";
-        isStartDisabled = true;
-        isStopDisabled = true;
       } else {
         stateLabel = "RUNNING";
         stateDot = "ok";
-        isStartDisabled = true;
-        isStopDisabled = false;
       }
     }
 
-    document.getElementById("start_btn").disabled = isStartDisabled;
-    document.getElementById("stop_btn").disabled = isStopDisabled;
+    const startBtn = document.getElementById("start_btn");
+    const stopBtn = document.getElementById("stop_btn");
+
+    if (isStarting) {
+      startBtn.disabled = true;
+      startBtn.innerHTML = '<span class="spinner-inline"></span> Starting...';
+      stopBtn.disabled = true;
+      stopBtn.innerHTML = 'Stop';
+    } else if (isStopping || data.stopping) {
+      startBtn.disabled = true;
+      startBtn.innerHTML = 'Start';
+      stopBtn.disabled = true;
+      stopBtn.innerHTML = '<span class="spinner-inline"></span> Stopping...';
+    } else if (data.running) {
+      startBtn.disabled = true;
+      startBtn.innerHTML = 'Start';
+      stopBtn.disabled = false;
+      stopBtn.innerHTML = 'Stop';
+    } else {
+      startBtn.disabled = false;
+      startBtn.innerHTML = 'Start';
+      stopBtn.disabled = true;
+      stopBtn.innerHTML = 'Stop';
+    }
+
     document.getElementById("run_status").innerHTML = `<span class="status-dot ${stateDot}"></span>${stateLabel}`;
 
     document.getElementById("queue_stats").innerHTML = `
