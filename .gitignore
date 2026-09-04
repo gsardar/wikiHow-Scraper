@@ -1,7 +1,9 @@
 # Sensitive: plaintext credentials and live login sessions/cookies per profile.
-# Entire profile user data dirs (cookies, local storage, extensions) should not be committed.
-data/profiles/*
-!data/profiles/*/credentials.json
+# Entire profile user data dirs (cookies, credentials, local storage, extensions) are excluded.
+data/profiles/
+data/
+credentials.json
+*_credentials.json
 
 # Transient runtime state - regenerated on demand, not meaningful to share.
 data/tor_runtime/
