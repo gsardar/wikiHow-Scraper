@@ -10,8 +10,62 @@ A robust, cross-platform (macOS & Windows) toolkit for downloading, categorizing
 - **🖥️ Interactive TUI & CLI**: Complete terminal interface built with `rich` for headless or command-line operation.
 - **👤 Chrome Profile & Account Management**: Manage multiple authenticated Chrome profiles (WikiHow, Google, Facebook login) with session persistence and auto-login watchdog.
 - **🔄 Cross-Platform Browser Watchdog**: Works seamlessly across **macOS** and **Windows** without unexpected browser closures, using SeleniumBase and optimized Chrome process handles.
-- **⚡ Continuous Article Downloader**: Batch download and organize articles with automatic categorization stored under `data/articles/`.
+- **♾️ Unlimited Continuous Article Downloader**: Batch download and organize articles with automatic category grouping saved under `data/articles/`. Features auto-replenish discovery for infinite continuous scraping.
 - **🛡️ Tor Proxy & Circuit Rotation**: Integrated SOCKS proxy with automatic IP rotation on HTTP 403/429 rate limits or Cloudflare challenges.
+
+---
+
+## 📖 Step-by-Step Quick Start Guide
+
+### Step 1: Start the Web Server
+
+Run the Web UI server from your terminal:
+
+```bash
+python webui.py
+# or
+python -m wikihow_scraper.webui
+```
+
+Once started, open your web browser and navigate to: **`http://127.0.0.1:8899`**
+
+---
+
+### Step 2: Logging into a Chrome Profile
+
+To scrape logged-in pages or preserve user session cookies:
+
+1. In the Web UI sidebar under **Profile**, select an existing profile (e.g. `explorer_1`) or enter a name and click **Add Profile**.
+2. Click **Login (Interactive)**.
+3. A visible Google Chrome window will open on your desktop navigated to WikiHow.
+4. Log into your WikiHow account (via WikiHow direct login, Google, or Facebook).
+5. Once logged in, you can close or keep the browser window open.
+6. Click **Check Status** in the Web UI — the status will show **`LOGGED IN`**.
+
+---
+
+### Step 3: Starting Unlimited Continuous Scraping
+
+To launch continuous article downloading:
+
+1. In the left sidebar under **Mode**, click **Continuous**.
+2. Choose a **Sequencing Strategy**:
+   - **Sorted (site-wide)**: Scrapes articles ordered by *Newest created*, *Newest edits*, *Most edited*, etc.
+   - **Random articles**: Picks random articles site-wide or within a selected category.
+   - **Manual list**: Type exact article titles separated by commas.
+3. Under **Count**, leave the box **blank or enter 0** for **unlimited continuous scraping**.
+4. Click the green **Start** button.
+5. The **Run State** will change to **`RUNNING`**. The scraper will continuously download articles, categorize them, and auto-discover new articles whenever the queue empties.
+6. To stop scraping at any time, click the red **Stop** button.
+
+---
+
+## ❓ Frequently Asked Questions
+
+### Is there a limit on continuous scraping?
+**No, continuous scraping is 100% unlimited.** 
+- Previously, runs were capped at 20 articles per batch.
+- We updated the engine with **automatic auto-discovery replenishment**. Now, when the initial queue finishes, the continuous scraper automatically discovers and queues new articles, continuing indefinitely until you click **Stop**.
 
 ---
 
@@ -25,7 +79,7 @@ A robust, cross-platform (macOS & Windows) toolkit for downloading, categorizing
 
 1. **Clone the repository**:
    ```bash
-   git clone git@github.com:gsardar/wikihow_scraper.git
+   git clone https://github.com/gsardar/wikihow_scraper.git
    cd wikihow_scraper
    ```
 
@@ -34,82 +88,29 @@ A robust, cross-platform (macOS & Windows) toolkit for downloading, categorizing
    pip install -r requirements.txt
    ```
 
-*(Dependencies include: `seleniumbase`, `requests`, `beautifulsoup4`, `rich`, `psutil`, `stem`, `websockets`, `pillow`)*
-
 ---
 
-## 🚀 Usage Guide
+## 💻 Command Line (CLI) & TUI Usage
 
-### 1. Launching the Web UI (Recommended)
-
-Start the local Web UI dashboard server:
-
-```bash
-python webui.py
-# or
-python -m wikihow_scraper.webui
-```
-
-Open your browser and navigate to: **`http://127.0.0.1:8899`**
-
-**From the Web UI, you can:**
-- Create and manage Chrome profiles.
-- Log into your WikiHow account (launches a visible Chrome browser that remains open).
-- Check login status (`logged_in` / `not_logged_in`).
-- Start continuous scraping sessions.
-
----
-
-### 2. Launching the TUI Dashboard
-
-To run the interactive terminal user interface:
-
+### Interactive Terminal Dashboard (TUI)
 ```bash
 python tui.py
 # or
 python -m wikihow_scraper
 ```
 
----
+### Command Line Interface (CLI)
 
-### 3. Command Line Interface (CLI)
-
-#### **Scrape Articles**
 ```bash
-# Scrape a single article via requests/Tor
+# Scrape a single article
 python cli.py scrape "Tie-a-Tie"
 
-# Scrape an article using a real Chrome browser instance
-python cli.py scrape "Tie-a-Tie" --browser
-
-# Batch scrape multiple articles in parallel
-python cli.py scrape "Tie-a-Tie,Bake-a-Cake,Fix-a-Leak" --multi --workers 3
-```
-
-#### **Profile & Login Management**
-```bash
-# List all saved profiles
+# Manage profiles via CLI
 python cli.py profile list
+python cli.py profile login --name profile_1
 
-# Create a new profile
-python cli.py profile add --name explorer_1
-
-# Open visible browser window to log into WikiHow
-python cli.py profile login --name explorer_1
-
-# Check if profile is logged in
-python cli.py profile check-login --name explorer_1
-```
-
-#### **Proxy Management (Tor)**
-```bash
-# Connect to Tor SOCKS proxy
+# Tor Proxy management
 python cli.py proxy connect
-
-# Check current IP address
-python cli.py proxy status
-
-# Rotate IP address (NEWNYM signal)
 python cli.py proxy rotate
 ```
 
@@ -119,7 +120,7 @@ python cli.py proxy rotate
 
 ```
 wikihow_scraper/
-├── README.md               # Quick start & documentation
+├── README.md               # Documentation & quick start guide
 ├── SPECIFICATION.md        # Technical architecture details
 ├── webui.py                # Web UI application server (port 8899)
 ├── cli.py                  # Command-line interface entry point
@@ -142,11 +143,3 @@ wikihow_scraper/
 ## 🔒 Security & Privacy
 
 - All login credentials and Chrome session cookies remain local in `data/profiles/` and are strictly excluded from Git commits via `.gitignore`.
-- Only empty/unfilled profile templates (`credentials.json`) are shared.
-
----
-
-## 💻 Cross-Platform Notes
-
-- **macOS & Windows**: Fully tested and optimized for both macOS and Windows.
-- Chrome process initialization avoids zero-tab race conditions and uses graceful disconnect protocols (`detach_driver_safely`) to prevent automatic browser closures.
