@@ -184,6 +184,61 @@ def api_set_memory_range():
     return jsonify({"ok": True})
 
 
+@app.route("/api/settings/proxy", methods=["GET"])
+def api_get_proxy_settings():
+    try:
+        with open(SETTINGS_PATH, "r") as f:
+            data = _json.load(f)
+        proxy_cfg = data.get("proxy", {})
+        return jsonify({
+            "use_tor": bool(proxy_cfg.get("use_tor", False)),
+            "auto_connect": bool(proxy_cfg.get("auto_connect", False)),
+            "status": tor.get_status()
+        })
+    except Exception:
+        return jsonify({"use_tor": False, "auto_connect": False, "status": tor.get_status()})
+
+
+@app.route("/api/settings/proxy", methods=["POST"])
+def api_set_proxy_settings():
+    data = request.get_json(silent=True) or request.get_json(force=True, silent=True) or {}
+    use_tor = bool(data.get("use_tor", False))
+    auto_connect = bool(data.get("auto_connect", False))
+
+    try:
+        with open(SETTINGS_PATH, "r") as f:
+            settings_data = _json.load(f)
+    except Exception:
+        settings_data = {}
+
+    if "proxy" not in settings_data:
+        settings_data["proxy"] = {}
+
+    settings_data["proxy"]["use_tor"] = use_tor
+    settings_data["proxy"]["auto_connect"] = auto_connect
+
+    try:
+        with open(SETTINGS_PATH, "w") as f:
+            _json.dump(settings_data, f, indent=2)
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+    def worker():
+        if use_tor:
+            st = tor.get_status()
+            if st["status"] != "ONLINE":
+                activity_log.log("[proxy] 'Use Tor' enabled - launching Tor SOCKS proxy...")
+                tor.connect()
+        else:
+            st = tor.get_status()
+            if st["status"] == "ONLINE":
+                activity_log.log("[proxy] 'Use Tor' disabled - stopping Tor process...")
+                tor.shutdown()
+
+    threading.Thread(target=worker, daemon=True).start()
+    return jsonify({"ok": True, "use_tor": use_tor, "auto_connect": auto_connect})
+
+
 @app.route("/api/status")
 def api_status():
     now = time.time()
@@ -202,6 +257,12 @@ def api_status():
         accounts_age = now - _accounts_cache["checked_at"] if _accounts_cache["checked_at"] else None
 
     tor_info = tor.get_status()
+    try:
+        with open(SETTINGS_PATH, "r") as f:
+            _sdata = _json.load(f)
+        use_tor_setting = bool(_sdata.get("proxy", {}).get("use_tor", False))
+    except Exception:
+        use_tor_setting = False
 
     vm = psutil.virtual_memory()
     memory = {
@@ -213,6 +274,7 @@ def api_status():
     return jsonify({
         "running": cs.is_running(),
         "stopping": cs._stop_event.is_set(),
+        "use_tor": use_tor_setting,
         "queue": cs.get_queue_status(),
         "overall_rate": round(cs.get_overall_rate(), 3),
         "articles": articles,
@@ -568,6 +630,18 @@ _INDEX_HTML = """<!doctype html>
       <button id="stop_btn" class="danger">Stop</button>
     </div>
     <div id="run_status" class="muted"></div>
+
+    <h2>Tor Proxy &amp; Privacy</h2>
+    <div class="panel" style="margin-bottom:12px;padding:10px;">
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-bottom:6px;">
+        <input type="checkbox" id="use_tor_checkbox" style="width:auto;margin:0;">
+        <b>Use Tor Proxy</b>
+      </label>
+      <div id="tor_sidebar_status" class="muted" style="margin-bottom:8px;">Checking Tor status...</div>
+      <div class="row">
+        <button id="tor_rotate_side_btn" style="padding:4px 8px;font-size:12px;">Rotate IP</button>
+      </div>
+    </div>
 
     <h2>Worker Memory Budget</h2>
     <div id="memory_slider_widget">
@@ -947,9 +1021,32 @@ document.getElementById("refresh_accounts_btn").onclick = () => fetch("/api/acco
 document.getElementById("proxy_connect").onclick = () => fetch("/api/proxy/connect", {method: "POST"});
 document.getElementById("proxy_rotate").onclick = () => fetch("/api/proxy/rotate", {method: "POST"});
 document.getElementById("proxy_shutdown").onclick = () => fetch("/api/proxy/shutdown", {method: "POST"});
+document.getElementById("tor_rotate_side_btn").onclick = () => fetch("/api/proxy/rotate", {method: "POST"});
+
+document.getElementById("use_tor_checkbox").onchange = async (e) => {
+  const checked = e.target.checked;
+  await fetch("/api/settings/proxy", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({use_tor: checked})
+  });
+};
+
+let proxySettingsLoaded = false;
+async function loadProxySettings() {
+  try {
+    const r = await fetch("/api/settings/proxy");
+    const data = await r.json();
+    document.getElementById("use_tor_checkbox").checked = data.use_tor;
+    proxySettingsLoaded = true;
+  } catch(e) {}
+}
 
 async function poll() {
   try {
+    if (!proxySettingsLoaded) {
+      loadProxySettings();
+    }
+
     const r = await fetch("/api/status");
     const data = await r.json();
 
@@ -981,6 +1078,13 @@ async function poll() {
       <div class="stat-line">Queue: pending=${data.queue.pending} completed=${data.queue.completed} failed=${data.queue.failed}</div>
       <div class="stat-line"><span class="status-dot ${data.tor.status === 'ONLINE' ? 'ok' : 'bad'}"></span>Tor: ${data.tor.status} | IP: ${data.tor.current_ip || '-'}</div>
     `;
+
+    const isTorOnline = data.tor.status === 'ONLINE';
+    const torDot = isTorOnline ? 'ok' : 'bad';
+    const torSideEl = document.getElementById("tor_sidebar_status");
+    if (torSideEl) {
+      torSideEl.innerHTML = `<span class="status-dot ${torDot}"></span>Tor: <b>${data.tor.status}</b> ${isTorOnline ? ('| IP: ' + (data.tor.current_ip || '-')) : ''}`;
+    }
 
     const articlesEl = document.getElementById("articles");
     if (data.articles.length === 0) {
@@ -1060,6 +1164,17 @@ setInterval(poll, 2000);
 
 def launch_webui(host="127.0.0.1", port=8899, debug=False):
     _refresh_accounts_async()
+    try:
+        with open(SETTINGS_PATH, "r") as f:
+            scfg = _json.load(f)
+        proxy_cfg = scfg.get("proxy", {})
+        if proxy_cfg.get("use_tor") or proxy_cfg.get("auto_connect"):
+            def _auto_tor():
+                activity_log.log("[proxy] Auto-connecting Tor SOCKS proxy on server launch...")
+                tor.connect()
+            threading.Thread(target=_auto_tor, daemon=True).start()
+    except Exception:
+        pass
     app.run(host=host, port=port, debug=debug, use_reloader=False)
 
 

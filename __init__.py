@@ -17,7 +17,7 @@ BASE_DIR = os.path.dirname(PACKAGE_DIR)
 SETTINGS_PATH = os.path.join(PACKAGE_DIR, "settings.json")
 
 _SETTINGS_DEFAULTS = {
-    "proxy": {"default_proxy_port": 9080, "default_control_port": 9081},
+    "proxy": {"default_proxy_port": 9080, "default_control_port": 9081, "use_tor": False, "auto_connect": False},
     "workers": {
         "ram_buffer_mb": 1024,
         "estimated_mb_per_tab_worker": 150,

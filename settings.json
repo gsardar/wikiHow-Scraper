@@ -2,7 +2,9 @@
   "_comment": "All tunable scraper settings live here. __init__.py only computes filesystem paths (which a JSON file can't do - there's no equivalent of Python's __file__) and loads these values. Edit this file, not __init__.py, to change ports or worker sizing.",
   "proxy": {
     "default_proxy_port": 9080,
-    "default_control_port": 9081
+    "default_control_port": 9081,
+    "use_tor": false,
+    "auto_connect": false
   },
   "workers": {
     "_comment": "Controls how many concurrent workers (tabs or separate Chrome processes) the scraper auto-selects based on available RAM.",
